@@ -155,6 +155,34 @@ DEPARTAMENTOS = {
 
 # sedes
 SEDES = {
+    'AREA DE ADMINISTRACION': '010', #'JR.SIMON BOLIVAR NRO 933'
+    'DEPARTAMENTO DE ALMACEN': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE CONTABILIDAD': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE LOGISTICA': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE RRHH': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE TECNOLOGIA': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE TESORERIA': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'DEPARTAMENTO DE TRANSPORTES': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'DEPARTAMENTO GERENCIA': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'AREA LEGAL': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'MARKET BOLIVAR': '010', #'JR.SIMON BOLIVAR NRO 933',
+    'MARKET CARAZ' : '001', #Av. 1ERO DE MAYO
+    'MARKET CARHUAZ' : '006', #'JR. UCAYALI',
+    'MARKET JR. CARAZ' : '005', #'JR. CARAZ NRO. 344',
+    'MARKET LUZURIAGA' : '002', #'AV. LUZURIAGA NRO. 586',
+    'MARKET RAYMONDI' : '012', # PROLOGANCION ANTONIO RAYMONDI
+    'MARKET SUCRE' : '004', #'JR. SUCRE',
+    'MAYORISTA CARAZ' : '008', #'CAR. CENTRAL NRO. 632',
+    'MAYORISTA CARHUAZ' : '007', #'AV PROGRESO',
+    'MAYORISTA RAYMONDI' : '003', # AV RAYMONDI
+    'PRODUCCION CENTER': '009', #'CARRETERA HUARAZ - MASHUAN'
+    'PROYECTOS DE INGENIERIA' : '010',
+    'SUPERVISION DE CONSTRUCCIONES': '010',
+    'TRUJILLO CENTER': '009', #'CARRETERA HUARAZ - MASHUAN'
+}
+
+"""
+SEDES = {
     'AREA DE ADMINISTRACION': 'JR.SIMON BOLIVAR NRO 933', #Codigo OFIPLAN: 010
     'DEPARTAMENTO DE ALMACEN': 'JR.SIMON BOLIVAR NRO 933',
     'AREA DE CONTABILIDAD': 'JR.SIMON BOLIVAR NRO 933',
@@ -180,7 +208,7 @@ SEDES = {
     'SUPERVISION DE CONSTRUCCIONES': '',
     'TRUJILLO CENTER': 'CARRETERA HUARAZ - MASHUAN'
 }
-
+"""
 
 def get_trabajadores_ofiplan():
     # Crear la conexión SQL
@@ -203,65 +231,14 @@ def get_trabajadores_ofiplan():
         FROM [OFIPLAN].[dbo].[TMTRAB_PERS]
     """
     df_ofiplan = pd.read_sql(sql_query_ofiplan, conn_sql_server)
-    # print(df_ofiplan)
+    print("Trabajadores desde OFIPLAN")
+    print(df_ofiplan)
     conn_sql_server.close()
     return df_ofiplan
 
 
-def get_trabajadores_rrhh():
-    # Crear la conexión PostgreSQL
-    try:
-        # Conectar a SQL Server (BD_OFIPLAN)
-        conn_postgres = psycopg2.connect(
-            dbname=database_postgresql,
-            user=username_postgresql,
-            password=password_postgresql,
-            host=server_postgresql,
-            port=port_postgresql
-        )
-        print("Conexión exitosa a PostgreSQL")
-    except Exception as e:
-        print("Error al conectar a PostgreSQL:", e)
-
-    # Consulta para obtener los trabajadores de BD_RRHH
-    # idtypeemployee: 1 = PLANILLA
-    sql_query_rrhh = """
-        SELECT
-            emp.dni,
-            emp.fullname,
-            emp.lastname,
-            emp.birthdate,
-            emp.cellphone,
-            emp.email,
-            emp.address,
-            emp.idsite,
-            b.name AS departamento,  -- Utilizamos JOIN en lugar de subconsulta
-            emp.idcharge,
-            emp.startdate,
-            emp.salary,
-            emp.sexo,
-            emp.condition,
-            emp.licence,
-            emp.id_afp,
-            a.nombre AS regimen_pensionario,  -- Utilizamos JOIN en lugar de subconsulta
-            emp.id_entidadfinanciera,
-            emp.cci,
-            emp.cargo,
-            emp.ubigeo
-        FROM
-            employee emp
-        LEFT JOIN
-            business b ON b.id = emp.idsite  -- Realizamos un JOIN con la tabla business
-        LEFT JOIN
-            afp a ON a.id = emp.id_afp       -- Realizamos un JOIN con la tabla afp
-        WHERE
-            emp.idtypeemployee = 1
-            AND emp.status = true
-            -- AND emp.dni IN ('60730169', '75230396', '48140024');  -- Corregimos la sintaxis para IN
-    """
-
-    ###
-    #0 #75891884 OK
+###
+    #0 #75891884 OK <- Ya esta en maestro empresa
     #1 #75139521 OK
     #2 #75912867 OK
     #3 #60411189 OK
@@ -274,11 +251,78 @@ def get_trabajadores_rrhh():
     #10 #76172731 OK
     #11 #60027120 OK
     ####
+def get_trabajadores_rrhh(dni_list=None):
+    """
+    Obtiene los datos de trabajadores desde la base de datos BD_RRHH en PostgreSQL.
+    Si se proporciona una lista de DNIs, solo devuelve los trabajadores con esos DNIs.
+    """
+    # Crear la conexión PostgreSQL
+    try:
+        conn_postgres = psycopg2.connect(
+            dbname=database_postgresql,
+            user=username_postgresql,
+            password=password_postgresql,
+            host=server_postgresql,
+            port=port_postgresql
+        )
+        print("Conexión exitosa a PostgreSQL")
+    except Exception as e:
+        print("Error al conectar a PostgreSQL:", e)
+        return None
 
-    ## TEST  la Busqueda por DNI es solo para TESTING
+    # Construir la consulta SQL
+    sql_query_rrhh = """
+        SELECT
+            emp.dni,
+            emp.fullname,
+            emp.lastname,
+            emp.birthdate,
+            emp.cellphone,
+            emp.email,
+            emp.address,
+            emp.idsite,
+            b.name AS departamento,
+            emp.idcharge,
+            emp.startdate,
+            emp.salary,
+            emp.sexo,
+            emp.condition,
+            emp.licence,
+            emp.id_afp,
+            a.nombre AS regimen_pensionario,
+            emp.id_entidadfinanciera,
+            emp.cci,
+            emp.cargo,
+            emp.ubigeo
+            -- emp.cci_cts
+        FROM
+            employee emp
+        LEFT JOIN
+            business b ON b.id = emp.idsite
+        LEFT JOIN
+            afp a ON a.id = emp.id_afp
+        WHERE
+            emp.idtypeemployee = 1
+            AND emp.status = true
+            -- AND emp.dni = '74083687'
+    """
 
-    df_rrhh = pd.read_sql(sql_query_rrhh, conn_postgres)
-    print(df_rrhh)
+    # Agregar el filtro de DNI si se proporciona una lista
+    if dni_list:
+        # Convertir la lista de DNIs a una cadena compatible con SQL
+        dni_tuple = tuple(dni_list)  # Convertir la lista a una tupla para el formato SQL
+        sql_query_rrhh += f" AND emp.dni IN {dni_tuple}"
+
+    # Ejecutar la consulta
+    try:
+        df_rrhh = pd.read_sql(sql_query_rrhh, conn_postgres)
+        print("Trabajadores desde la BD RRHHH")
+        print(df_rrhh)
+    except Exception as e:
+        print("Error al ejecutar la consulta:", e)
+        df_rrhh = pd.DataFrame()  # Devolver un DataFrame vacío en caso de error
+
+    # Cerrar la conexión
     conn_postgres.close()
 
     return df_rrhh
@@ -314,6 +358,105 @@ def obtener_codigo_via_y_zona(direccion):
     return cod_tipo_via, cod_tipo_zona
 
 
+def get_ubigeo_to_ofiplan(ubigeo):
+    if "0206" in ubigeo:
+        # 0206 -> CARHUAZ
+        return "020401"
+    if "0212" in ubigeo:
+        # 0212 -> CARAZ
+        return "020701"
+    if "0201" in ubigeo:
+        # 0201 -> HUARAZ
+        return "020101"
+    return ubigeo
+
+def get_jefe_inmediato(departamento):
+    '''Obtener el DNI del jefe inmediato según el departamento'''
+    # Cargos asignados según el departamento
+    cargo_jefe_by_departamento = {
+        'MARKET': 'Administrador de Tienda',
+        'MAYORISTA': 'Jefe de Tienda Mayorista',
+        'AREA DE TECNOLOGIA': 'Data Engineer',
+        'AREA DE CONTABILIDAD': 'Head of Accounting and Treasury',
+        'TRUJILLO CENTER': 'Jefe de Tienda Mayorista',
+        'AREA LOGISTICA': 'Purchasing Manager'
+    }
+
+    _departamento = departamento
+    # Identificar departamento general
+    if 'MARKET' in departamento.upper():
+        _departamento = 'MARKET'
+
+    if 'MAYORISTA' in departamento.upper():
+        _departamento = 'MAYORISTA'
+
+    # Verificar que el departamento tenga un cargo asignado
+    if _departamento not in cargo_jefe_by_departamento:
+        print("Departamento no encontrado")
+        return None
+
+    # Obtener el cargo correspondiente
+    cargo = cargo_jefe_by_departamento[_departamento]
+
+    # Construir la consulta SQL dinámica para obtener solo el DNI
+    sql_query_rrhh = f"""
+        SELECT
+            emp.dni
+        FROM
+            employee emp
+        LEFT JOIN
+            business b ON b.id = emp.idsite
+        WHERE
+            emp.idtypeemployee = 1
+            AND emp.status = true
+            AND b.name = '{departamento}'
+            AND emp.cargo = '{cargo}'
+        LIMIT 1
+    """
+
+    # Crear la conexión a PostgreSQL
+    try:
+        conn_postgres = psycopg2.connect(
+            dbname=database_postgresql,
+            user=username_postgresql,
+            password=password_postgresql,
+            host=server_postgresql,
+            port=port_postgresql
+        )
+    except Exception as e:
+        print("Error al conectar a PostgreSQL:", e)
+        return None
+
+    # Ejecutar la consulta
+    try:
+        df_rrhh = pd.read_sql(sql_query_rrhh, conn_postgres)
+        conn_postgres.close()
+
+        # Si hay resultados, devolver el primer DNI; si no, devolver None
+        return df_rrhh['dni'].iloc[0] if not df_rrhh.empty else None
+    except Exception as e:
+        print("Error al ejecutar la consulta:", e)
+        return None
+
+
+def get_puesto_to_ofiplan(puesto):
+    '''Igualar puestos App RRHH con los puestos de OFIPLAN'''
+    puestos_to_ofiplan = {
+        'Auxiliar de Merchandising': '',
+        'Operario de Almacen': 'almacenero'
+    }
+
+    _puesto = puesto
+    # Identificar puesto general
+    if 'Auxiliar de Merchandising'.upper() in puesto.upper():
+        _puesto = 'Auxiliar de Merchandising'
+
+    if 'Operario de Almacen'.upper() in puesto.upper():
+        _puesto = 'Operario de Almacen'
+
+    return puestos_to_ofiplan.get(_puesto, puesto)
+
+
 def formatear_json(row):
     """Función para agregar los campos adicionales y formar el JSON"""
     # Dividir el apellido en paterno y materno
@@ -328,6 +471,7 @@ def formatear_json(row):
     direccion = row['address']
     cod_tipo_via, cod_tipo_zona = obtener_codigo_via_y_zona(direccion)
     regimen_pensionario = row["regimen_pensionario"].replace(" ", "").split("-")[0] if row.get("regimen_pensionario") else ""
+    departamento = row.get("departamento", "")
 
     # Crear el JSON con los datos requeridos
     return {
@@ -336,10 +480,10 @@ def formatear_json(row):
         "ape_materno": ape_materno,
         "nombres": row['fullname'],
         "fecha_ingreso": fecha_ingreso,
-        "estado_civil": ESTADO_CIVIL["SOLTERO"],  # Enviar solo código, Ese dato vendrá en la fase 4
-        "tipo_instruccion": GRADO_INSTRUCCION["SECUNDARIA COMPLETA"], # Ese dato vendrá en la fase 4
+        "estado_civil": ESTADO_CIVIL["SOLTERO"],  # Enviar solo código, Ese dato vendrá en la fase 4 ??? 
+        "tipo_instruccion":  GRADO_INSTRUCCION["SECUNDARIA COMPLETA"] if "MARKET" in departamento or "MAYOR" in departamento else GRADO_INSTRUCCION["SUPERIOR COMPLETA"], # Ese dato vendrá en la fase 4 ??? 
         # Consultar si es el mismo para la fecha de nacimiento
-        "ubigeo": row['ubigeo'],
+        "ubigeo": get_ubigeo_to_ofiplan(row['ubigeo']),
         "fecha_nacimiento": fecha_nacimiento,
         "sexo":  'M' if row['sexo'].lower() == 'masculino' else 'F',
         "celular": row['cellphone'],
@@ -349,10 +493,17 @@ def formatear_json(row):
         "tipo_zona": cod_tipo_zona,  # Código OFIPLAN
         "pais": "155",  # Código OFIPLAN (PERU)
         "nacionalidad": "155",  # Código OFIPLAN (PERUANO)
-        "cod_pensionario": REGIMEN_PENSIONARIO[regimen_pensionario],
+        "cod_pensionario": REGIMEN_PENSIONARIO.get(regimen_pensionario, ""),
         # DATOS PARA MODULO MAESTRO EMPRESA
-        "departamento": DEPARTAMENTOS[row["departamento"]],
-        "sede": SEDES[row["departamento"]], # Dirección de la sede
+        "departamento_desc": departamento,
+        "departamento": DEPARTAMENTOS.get(departamento, ""),
+        "sede": SEDES.get(departamento, ""), # Dirección de la sede
+        "puesto": 'almacenero', # get_puesto_to_ofiplan(row["cargo"]),
+        "grupo_ocupacional": '002', # Ver si poner codigo o desc para busqueda en ofiplan
+        "banco_trabajador": "CRE" if departamento in ["MAYORISTA CARAZ", "MARKET CARAZ"] else "CON",
+        "nro_cuenta_cts": row.get("cci_cts", "0000000000000"), # Campo en la Fase 4 RRHH
+        "turno": "002" if "MARKET" in departamento or "MAYOR" in departamento or "CENTER" in departamento else "001" , # 002: MARKETS Y MAY
+        "jefe": get_jefe_inmediato(departamento), # DNI
     }
 
 
@@ -361,7 +512,6 @@ def get_trabajadores_no_existen():
     df_rrhh = get_trabajadores_rrhh()
     # Convertir las columnas de identificación a listas
     trabajadores_ofiplan = df_ofiplan['CO_TRAB'].tolist()
-    trabajadores_rrhh = df_rrhh['dni'].tolist()
 
     # Filtrar trabajadores que están en BD_RRHH pero no en BD_OFIPLAN
     df_trabajadores_no_existen = df_rrhh[~df_rrhh['dni'].isin(
@@ -381,89 +531,79 @@ def get_trabajadores_no_existen():
     print(r_json)
 
     return r_json
-    # Convertir a JSON
-    result_json = df_trabajadores_no_existen.to_json(orient='records')
-    print(result_json)
 
-    # Para pruebas en UIPATH envio un ejemplo de lo q se enviara en el json
-    # Ejemplo de json a formar para enviar al bot UIPATH
-    r_json = [
-        {
-            "dni": "74060206",
-            "fullname": "KEVIN ANTHONY",
-            "lastname": "NOLASCO CAMONES",
-            "surname": "",
-            "idtypeemployee": 1,
-            # Dato faltantes
-            "fecha_ingreso": "20/10/2024",
-            "ape_paterno": "NOLASCO",
-            "ape_materno": "CAMONES",
-            "nombres": "KEVIN ANTHONY",
-            "estado_civil": "SOLTERO",
-            "tipo_instruccion": "SECUNDARIA COMPLETA",
-            "ubigeo": "020101",
-            "fecha_nacimiento": "26/12/1995",
-            # pais: TODO ES PERU, y Nacinalidad igula PERU : 155
-            "sexo": "M",
-            "celular": "999999999",
-            "email": "XXXXXXXXXX@gmail.com",
-            # CARR. CARRETERA CENTRAL NRO. SAN LUIS - CARLOS FERMIN FITZCA - ANCASH
-            "direccion": "AV. LA PAZ 123",
-            "tipo_via": "04",  # "PASAJE", # Codigo OFIPLAN ejemplo 04: PASAJE
-            "tipo_zona": "12",  # "BARRIO", # Código OFIPLAN  ejemplo 12: BARRIO
-            "pais": "155",  # "PERU", # Codigo en OFIPLAN: 155
-            "nacionalidad":  "155",  # "PERUANO", # Código OFIPLAN: 155
-            "cod_pensionario": "INT",
-        },
-        # {
-        #     "dni": "47518569",
-        #     "fullname": "KEVI",
-        #     "lastname": "NOLASCO CAMONES",
-        #     "surname": "",
-        #     "idtypeemployee": 1,
-        #     # Dato faltantes
-        #     "fecha_ingreso": "19/10/2024",
-        #     "ape_paterno": "NOLASCO",
-        #     "ape_materno": "CAMONES",
-        #     "nombres": "CARLA ANTHONY",
-        #     "estado_civil": "SOLTERO",
-        #     "tipo_instruccion": "SECUNDARIA COMPLETA",
-        #     "ubigeo": "020101",
-        #     "fecha_nacimiento": "26/12/1993",
-        #     # pais: TODO ES PERU, y Nacinalidad igula PERU : 155
-        #     "sexo": "F",
-        #     "celular": "999999999",
-        #     "email": "YYYYYYYY@gmail.com",
-        #     # CARR. CARRETERA CENTRAL NRO. SAN LUIS - CARLOS FERMIN FITZCA - ANCASH
-        #     "direccion": "AV. LA PAZ 123",
-        #     "tipo_via": "04", # "PASAJE", # Codigo OFIPLAN ejemplo 04: PASAJE
-        #     "tipo_zona": "12", # "BARRIO", # Código OFIPLAN  ejemplo 12: BARRIO
-        #     "pais": "155", #"PERU", # Codigo en OFIPLAN: 155
-        #     "nacionalidad":  "155", # "PERUANO", # Código OFIPLAN: 155
-        #     "cod_pensionario": "INT",
-        # },
-    ]
-    # print(r_json)
-    return json.dumps(r_json)
 
-# OPCION 2 Intentar pasar una tupla
-# def get_trabajadores_no_existen():
-#     df_ofiplan = get_trabajadores_ofiplan()
-#     df_rrhh = get_trabajadores_rrhh()
-#     # Convertir las columnas de identificación a listas
-#     trabajadores_ofiplan = df_ofiplan['CO_TRAB'].tolist()
-#     trabajadores_rrhh = df_rrhh['dni'].tolist()
+def get_trabajadores_ofiplan_maestro_empresa():
+    # Crear la conexión SQL
+    try:
+        # Conectar a SQL Server (BD_OFIPLAN)
+        conn_sql_server = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};'  # Controlador ODBC
+            f'SERVER={server_sql};'
+            f'DATABASE={database_sql};'
+            f'UID={username_sql};'
+            f'PWD={password_sql};'
+        )
+        print("Conexión exitosa a SQL Server")
+    except Exception as e:
+        print("Error al conectar a SQL Server:", e)
 
-#     # Filtrar trabajadores que están en BD_RRHH pero no en BD_OFIPLAN
-#     df_trabajadores_no_existen = df_rrhh[~df_rrhh['dni'].isin(trabajadores_ofiplan)]
+    # Consulta para obtener los trabajadores de BD_OFIPLAN
+    sql_query_ofiplan = """
+        SELECT [CO_TRAB]
+        FROM [OFIPLAN].[dbo].[TMTRAB_EMPR]
+    """
+    df_ofiplan = pd.read_sql(sql_query_ofiplan, conn_sql_server)
+    print(df_ofiplan)
+    conn_sql_server.close()
+    return df_ofiplan
 
-#     print("Trabajadores que no existen en BD_OFIPLAN:")
-#     print(df_trabajadores_no_existen)
 
-#     columns = df_trabajadores_no_existen.columns.tolist()
-#     rows = df_trabajadores_no_existen.values.tolist()
-#     print(columns, rows)
-#     return columns, rows
+## CREAR UNA SEGUNDA FUNCIÓN, Para identificar que trabajadores faltan sus datos en el modulo maestro en el OFIPLAN
+def get_trabajadores_no_existen_modulo_maestro_empresa():
+    """
+    Obtiene la lista de trabajadores que existen en el módulo maestro personal pero que no existen en el módulo maestro empresa en OFIPLAN.
+    """
+    # Obtener los DataFrames de los dos módulos en OFIPLAN
+    df_ofiplan = get_trabajadores_ofiplan()
+    df_ofiplan_maestro_empresa = get_trabajadores_ofiplan_maestro_empresa()
+
+    # Validar que las columnas necesarias existen en ambos DataFrames
+    if 'CO_TRAB' not in df_ofiplan.columns or 'CO_TRAB' not in df_ofiplan_maestro_empresa.columns:
+        print("Error: La columna 'CO_TRAB' no existe en uno de los DataFrames.")
+        return None
+
+    # Filtrar trabajadores que están en el módulo maestro personal pero no en el módulo maestro empresa
+    df_trabajadores_no_existen = df_ofiplan[~df_ofiplan['CO_TRAB'].isin(df_ofiplan_maestro_empresa['CO_TRAB'])]
+
+    if df_trabajadores_no_existen.empty:
+        print("Todos los trabajadores en el módulo maestro personal están en el módulo maestro empresa.")
+        return
+
+    # Mostrar resultados
+    print("Trabajadores que no existen en el módulo maestro empresa:")
+    print(df_trabajadores_no_existen)
+
+    dni_list = df_trabajadores_no_existen['CO_TRAB'].tolist()
+    df_rrhh = get_trabajadores_rrhh(dni_list=dni_list)
+
+    print("Trabajadores formateados con BD RRHH que no existen en el módulo maestro empresa:")
+    print(df_rrhh)
+
+     # Aplicar la función a cada fila del DataFrame
+    json_data = [formatear_json(row)
+                 for _, row in df_rrhh.iterrows()]
+
+    # Convertir la lista de diccionarios a un JSON
+    r_json = json.dumps(json_data, indent=2)
+
+    # Imprimir el JSON
+    print(r_json)
+
+    return r_json
+
 
 
 get_trabajadores_no_existen()
+# get_trabajadores_no_existen_modulo_maestro_empresa()
+# print(get_jefe_inmediato("MARKET JR. CARAZ"))
