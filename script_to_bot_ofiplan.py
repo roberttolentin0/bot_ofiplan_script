@@ -446,7 +446,7 @@ def get_jefe_inmediato(departamento):
 def cargar_puestos_desde_excel():
     """Carga los datos de puestos y grupos ocupacionales desde un archivo Excel. Ubicado en el mismo lugar de este Script"""
     try:
-        file_path = 'CARGOS_PUESTOS.xlsx'
+        file_path = 'PUESTOS_GRUPOS.xlsx'
         # Leer el archivo Excel y forzar 'COD_GRUPO' como tipo string
         df = pd.read_excel(file_path, dtype={'COD_GRUPO': str})
 
