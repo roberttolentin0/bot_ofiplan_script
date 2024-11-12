@@ -2,6 +2,8 @@ import json
 import pyodbc
 import psycopg2
 import pandas as pd
+import requests
+from datetime import datetime
 
 
 # Codigo según OFIPLAN
@@ -113,59 +115,59 @@ REGIMEN_PENSIONARIO = {
 
 # Departamentos
 DEPARTAMENTOS = {
-    'AREA DE ADMINISTRACION': 'MT110', # 'DEPARTAMENTO ADMINISTRACION'
+    'AREA DE ADMINISTRACION': 'MT110',  # 'DEPARTAMENTO ADMINISTRACION'
     'DEPARTAMENTO DE ALMACEN': 'MT1100',
-    'AREA DE CONTABILIDAD': 'MT350', # 'DEPARTAMENTO DE CONTABILIDAD'
-    'AREA DE LOGISTICA': 'MT200', # 'DEPARTAMENTO DE LOGISTICA'
-    'AREA DE RRHH': 'MT300', # 'DEPARTAMENTO DE RECURSOS HUMANOS'
-    'AREA DE TECNOLOGIA': 'MT250', # 'DEPARTAMENTO DE TECNOLOGIA DE LA INFORMACION'
-    'AREA DE TESORERIA': 'MT400', # 'DEPARTAMENTO DE TESORERIA'
+    'AREA DE CONTABILIDAD': 'MT350',  # 'DEPARTAMENTO DE CONTABILIDAD'
+    'AREA DE LOGISTICA': 'MT200',  # 'DEPARTAMENTO DE LOGISTICA'
+    'AREA DE RRHH': 'MT300',  # 'DEPARTAMENTO DE RECURSOS HUMANOS'
+    'AREA DE TECNOLOGIA': 'MT250',  # 'DEPARTAMENTO DE TECNOLOGIA DE LA INFORMACION'
+    'AREA DE TESORERIA': 'MT400',  # 'DEPARTAMENTO DE TESORERIA'
     'DEPARTAMENTO DE TRANSPORTES': 'MT450',
     'DEPARTAMENTO GERENCIA': 'MT100',
-    'AREA LEGAL': 'MT140', # 'DEPARTAMENTO LEGAL'
+    'AREA LEGAL': 'MT140',  # 'DEPARTAMENTO LEGAL'
     'MARKET BOLIVAR': 'MT1050',
-    'MARKET CARAZ' : 'MT850',
-    'MARKET CARHUAZ' : 'MT800',
-    'MARKET JR. CARAZ' : 'MT650',
-    'MARKET LUZURIAGA' : 'MT700',
-    'MARKET RAYMONDI' : 'MT1150',
-    'MARKET SUCRE' : 'MT750',
-    'MAYORISTA CARAZ' : 'MT550',
-    'MAYORISTA CARHUAZ' : 'MT600',
-    'MAYORISTA RAYMONDI' : 'MT500',
-    'POR DEFINIR DEPARTAMENTE' : '999',
+    'MARKET CARAZ': 'MT850',
+    'MARKET CARHUAZ': 'MT800',
+    'MARKET JR. CARAZ': 'MT650',
+    'MARKET LUZURIAGA': 'MT700',
+    'MARKET RAYMONDI': 'MT1150',
+    'MARKET SUCRE': 'MT750',
+    'MAYORISTA CARAZ': 'MT550',
+    'MAYORISTA CARHUAZ': 'MT600',
+    'MAYORISTA RAYMONDI': 'MT500',
+    'POR DEFINIR DEPARTAMENTE': '999',
     'PRODUCCION CENTER': 'MT900',
-    'PROYECTOS DE INGENIERIA' : 'MT950',
+    'PROYECTOS DE INGENIERIA': 'MT950',
     'SUPERVISION DE CONSTRUCCIONES': 'MT150',
     'TRUJILLO CENTER': 'MT1000'
 }
 
 # sedes
 SEDES = {
-    'AREA DE ADMINISTRACION': '010', #'JR.SIMON BOLIVAR NRO 933'
-    'DEPARTAMENTO DE ALMACEN': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA DE CONTABILIDAD': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA DE LOGISTICA': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA DE RRHH': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA DE TECNOLOGIA': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA DE TESORERIA': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'DEPARTAMENTO DE TRANSPORTES': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'DEPARTAMENTO GERENCIA': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'AREA LEGAL': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'MARKET BOLIVAR': '010', #'JR.SIMON BOLIVAR NRO 933',
-    'MARKET CARAZ' : '001', #Av. 1ERO DE MAYO
-    'MARKET CARHUAZ' : '006', #'JR. UCAYALI',
-    'MARKET JR. CARAZ' : '005', #'JR. CARAZ NRO. 344',
-    'MARKET LUZURIAGA' : '002', #'AV. LUZURIAGA NRO. 586',
-    'MARKET RAYMONDI' : '012', # PROLOGANCION ANTONIO RAYMONDI
-    'MARKET SUCRE' : '004', #'JR. SUCRE',
-    'MAYORISTA CARAZ' : '008', #'CAR. CENTRAL NRO. 632',
-    'MAYORISTA CARHUAZ' : '007', #'AV PROGRESO',
-    'MAYORISTA RAYMONDI' : '003', # AV RAYMONDI
-    'PRODUCCION CENTER': '009', #'CARRETERA HUARAZ - MASHUAN'
-    'PROYECTOS DE INGENIERIA' : '010',
+    'AREA DE ADMINISTRACION': '010',  # 'JR.SIMON BOLIVAR NRO 933'
+    'DEPARTAMENTO DE ALMACEN': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE CONTABILIDAD': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE LOGISTICA': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE RRHH': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE TECNOLOGIA': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA DE TESORERIA': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'DEPARTAMENTO DE TRANSPORTES': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'DEPARTAMENTO GERENCIA': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'AREA LEGAL': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'MARKET BOLIVAR': '010',  # 'JR.SIMON BOLIVAR NRO 933',
+    'MARKET CARAZ': '001',  # Av. 1ERO DE MAYO
+    'MARKET CARHUAZ': '006',  # 'JR. UCAYALI',
+    'MARKET JR. CARAZ': '005',  # 'JR. CARAZ NRO. 344',
+    'MARKET LUZURIAGA': '002',  # 'AV. LUZURIAGA NRO. 586',
+    'MARKET RAYMONDI': '012',  # PROLOGANCION ANTONIO RAYMONDI
+    'MARKET SUCRE': '004',  # 'JR. SUCRE',
+    'MAYORISTA CARAZ': '008',  # 'CAR. CENTRAL NRO. 632',
+    'MAYORISTA CARHUAZ': '007',  # 'AV PROGRESO',
+    'MAYORISTA RAYMONDI': '003',  # AV RAYMONDI
+    'PRODUCCION CENTER': '009',  # 'CARRETERA HUARAZ - MASHUAN'
+    'PROYECTOS DE INGENIERIA': '010',
     'SUPERVISION DE CONSTRUCCIONES': '010',
-    'TRUJILLO CENTER': '009', #'CARRETERA HUARAZ - MASHUAN'
+    'TRUJILLO CENTER': '009',  # 'CARRETERA HUARAZ - MASHUAN'
 }
 
 """
@@ -207,15 +209,14 @@ DB_CONFIG = {
         'username': 'admin',
         'password': 'Huaraz2022..*'
     },
-    'postgresql_prod': {
+    'postgresql': {
         'server': '40.86.9.189',
         'database': 'RhDB2',
         'username': 'sqladmin',
         'password': 'Slayer20fer..',
         'port': '5433'
     },
-
-    'postgresql': {
+    'postgresql_dev': {
         'server': 'localhost',
         'database': 'RhDB2',
         'username': 'postgres',
@@ -269,20 +270,23 @@ def get_trabajadores_ofiplan():
     return pd.DataFrame()
 
 ###
-    #0 #75891884 OK <- Ya esta en maestro empresa
-    #1 #75139521 OK
-    #2 #75912867 OK
-    #3 #60411189 OK
-    #4 #60730169 OK
-    #5 #75230396 OK
-    #6 #48140024 OK
-    #7 #71207435 OK
-    #8 #71511047 OK
-    #9 #75785131 OK
-    #10 #76172731 OK
-    #11 #60027120 OK
+    # 0 #75891884 OK <- Ya esta en maestro empresa
+    # 1 #75139521 OK
+    # 2 #75912867 OK
+    # 3 #60411189 OK
+    # 4 #60730169 OK
+    # 5 #75230396 OK
+    # 6 #48140024 OK
+    # 7 #71207435 OK
+    # 8 #71511047 OK
+    # 9 #75785131 OK
+    # 10 #76172731 OK
+    # 11 #60027120 OK
     ####
-def get_trabajadores_rrhh(dni_list=None):
+
+
+def get_trabajadores_rrhh_old(dni_list=None):
+    # deprecated by API rrhh
     """
     Obtiene los datos de trabajadores desde la base de datos BD_RRHH en PostgreSQL.
     Si se proporciona una lista de DNIs, solo devuelve los trabajadores con esos DNIs.
@@ -322,13 +326,13 @@ def get_trabajadores_rrhh(dni_list=None):
         WHERE
             emp.idtypeemployee = 1
             AND emp.status = true
-            -- AND emp.dni = '74083687'
     """
 
     # Agregar el filtro de DNI si se proporciona una lista
     if dni_list:
         # Convertir la lista de DNIs a una cadena compatible con SQL
-        dni_tuple = tuple(dni_list)  # Convertir la lista a una tupla para el formato SQL
+        # Convertir la lista a una tupla para el formato SQL
+        dni_tuple = tuple(dni_list)
         sql_query_rrhh += f" AND emp.dni IN {dni_tuple}"
 
     conn = connect_postgresql()
@@ -338,7 +342,38 @@ def get_trabajadores_rrhh(dni_list=None):
         print("Trabajadores desde la BD RRHHH")
         print(df)
         return df
-    return pd.DataFrame() # Devolver un DataFrame vacío en caso de error
+    return pd.DataFrame()  # Devolver un DataFrame vacío en caso de error
+
+
+def get_trabajadores_rrhh(dni_list=None):
+    """
+    Obtiene los datos de trabajadores desde la API en lugar de la base de datos.
+    Si se proporciona una lista de DNIs, solo devuelve los trabajadores con esos DNIs.
+    """
+    api_url = "https://trv-app-rrhh-dtdmgvb6asf8afgd.westus-01.azurewebsites.net//offiplan/trabajdores"
+
+    try:
+        # Realizar la solicitud GET a la API
+        response = requests.get(api_url)
+        response.raise_for_status()  # Verificar si la respuesta fue exitosa (código 200)
+        data = response.json().get("data", [])
+
+        # Convertir la respuesta JSON en un DataFrame
+        df = pd.DataFrame(data)
+
+        # Filtrar por lista de DNIs si se proporciona
+        if dni_list:
+            df = df[df['dni'].isin(dni_list)]
+
+        print("Datos obtenidos desde la API RRHH")
+        print(df)
+        return df
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error al obtener datos desde la API: {e}")
+        return pd.DataFrame()  # Devolver un DataFrame vacío en caso de error
+
+# print(get_trabajadores_rrhh())
 
 
 def normalizar_direccion(direccion, abreviaturas):
@@ -350,8 +385,10 @@ def normalizar_direccion(direccion, abreviaturas):
 
 def obtener_codigo_via_y_zona(direccion):
     """Función para obtener los códigos"""
-    direccion_normalizada_via = normalizar_direccion(direccion, ABREVIATURAS_VIAS)
-    direccion_normalizada_zona = normalizar_direccion(direccion, ABREVIATURAS_ZONAS)
+    direccion_normalizada_via = normalizar_direccion(
+        direccion, ABREVIATURAS_VIAS)
+    direccion_normalizada_zona = normalizar_direccion(
+        direccion, ABREVIATURAS_ZONAS)
 
     cod_tipo_via = '99'  # Código por defecto para 'OTROS'
     cod_tipo_zona = '99'  # Código por defecto para 'OTROS'
@@ -384,7 +421,8 @@ def get_ubigeo_to_ofiplan(ubigeo):
     return ubigeo
 
 
-def get_jefe_inmediato(departamento):
+def get_jefe_inmediato_old(departamento):
+    # deprecated by API rrhh
     '''Obtener el DNI del jefe inmediato según el departamento'''
     # Cargos asignados según el departamento
     cargo_jefe_by_departamento = {
@@ -443,10 +481,63 @@ def get_jefe_inmediato(departamento):
         return None
 
 
+def get_jefe_inmediato(departamento):
+    """
+    Obtener el DNI del jefe inmediato según el departamento usando una API.
+    """
+    # Cargos asignados según el departamento
+    cargoJefeByDepartamento = {
+        'MARKET': 'Administrador de Tienda',
+        'MAYORISTA': 'Jefe de Tienda Mayorista',
+        'AREA DE TECNOLOGIA': 'Data Engineer',
+        'AREA DE CONTABILIDAD': 'Head of Accounting and Treasury',
+        'TRUJILLO CENTER': 'Jefe de Tienda Mayorista',
+        'AREA LOGISTICA': 'Purchasing Manager'
+    }
+
+    # Normalizar el nombre del departamento para determinar el cargo
+    _departamento = departamento
+    if 'MARKET' in departamento.upper():
+        _departamento = 'MARKET'
+    elif 'MAYORISTA' in departamento.upper():
+        _departamento = 'MAYORISTA'
+
+    # Verificar que el departamento tenga un cargo asignado
+    if _departamento not in cargoJefeByDepartamento:
+        print("Departamento no encontrado")
+        return None
+
+    # Obtener el cargo correspondiente
+    cargo = cargoJefeByDepartamento[_departamento]
+
+    # Construir la URL de la API con los parámetros
+    api_url = f"https://trv-app-rrhh-dtdmgvb6asf8afgd.westus-01.azurewebsites.net/offiplan/jefeInmediato/{departamento}/{cargo}"
+
+    try:
+        # Realizar la solicitud GET a la API
+        response = requests.get(api_url)
+        response.raise_for_status()  # Verificar si la respuesta fue exitosa (código 200)
+
+        # Extraer el JSON de la respuesta
+        data = response.json()
+
+        # Verificar si la respuesta contiene datos y devolver el DNI
+        if data.get("success") and data.get("data"):
+            dni = data["data"][0].get("dni")
+            return dni if dni else None
+        else:
+            print("No se encontró el DNI en la respuesta")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error al obtener el jefe inmediato desde la API: {e}")
+        return None
+
+
 def cargar_puestos_desde_excel():
     """Carga los datos de puestos y grupos ocupacionales desde un archivo Excel. Ubicado en el mismo lugar de este Script"""
     try:
-        file_path = 'PUESTOS_GRUPOS.xlsx'
+        file_path = 'C:\script_to_bot_OFIPLAN\PUESTOS_GRUPOS.xlsx'
         # Leer el archivo Excel y forzar 'COD_GRUPO' como tipo string
         df = pd.read_excel(file_path, dtype={'COD_GRUPO': str})
 
@@ -486,16 +577,29 @@ def get_puesto_and_grupo_to_ofiplan(puesto):
 
 # print(get_puesto_and_grupo_to_ofiplan('junior Accounting Specialist - advances'))
 
+def convertir_fecha(fecha_str):
+    """Convierte una fecha en formato string a formato '%d/%m/%Y'."""
+    if fecha_str:
+        try:
+            # Intentar convertir la fecha desde el formato proporcionado por la API
+            fecha_dt = datetime.strptime(fecha_str, '%a, %d %b %Y %H:%M:%S %Z')
+            return fecha_dt.strftime('%d/%m/%Y')
+        except ValueError:
+            print(f"Error al convertir la fecha: {fecha_str}")
+    return ""
+
+
 def formatear_json(row):
     """Función para agregar los campos adicionales y formar el JSON"""
+    print(row)
     # Dividir el apellido en paterno y materno
     apellidos = row['lastname'].split(" ", 1)
     ape_paterno = apellidos[0]
     ape_materno = apellidos[1] if len(apellidos) > 1 else ""
 
-    # Formatear las fechas
-    fecha_ingreso = row['startdate'].strftime('%d/%m/%Y') if row['startdate'] else ""
-    fecha_nacimiento = row['birthdate'].strftime('%d/%m/%Y') if row['birthdate'] else ""
+    # # # Formatear las fechas
+    fecha_ingreso = convertir_fecha(row.get('startdate'))
+    fecha_nacimiento = convertir_fecha(row.get('birthdate'))
 
     direccion = row['address']
     cod_tipo_via, cod_tipo_zona = obtener_codigo_via_y_zona(direccion)
@@ -511,9 +615,11 @@ def formatear_json(row):
         "ape_materno": ape_materno,
         "nombres": row['fullname'],
         "fecha_ingreso": fecha_ingreso,
-        "estado_civil": ESTADO_CIVIL["SOLTERO"],  # Enviar solo código, Ese dato vendrá en la fase 4 ??? 
-        "tipo_instruccion":  GRADO_INSTRUCCION["SECUNDARIA COMPLETA"] if "MARKET" in departamento or "MAYOR" in departamento else GRADO_INSTRUCCION["SUPERIOR COMPLETA"], # Ese dato vendrá en la fase 4 ??? 
-        # Consultar si es el mismo para la fecha de nacimiento
+        # Enviar solo código, Ese dato vendrá en la fase 4 ???
+        "estado_civil": ESTADO_CIVIL["SOLTERO"],
+        # Ese dato vendrá en la fase 4 ???
+        "tipo_instruccion":  GRADO_INSTRUCCION["SECUNDARIA COMPLETA"] if "MARKET" in departamento or "MAYOR" in departamento else GRADO_INSTRUCCION["SUPERIOR COMPLETA"],
+        # # # Consultar si es el mismo para la fecha de nacimiento
         "ubigeo": get_ubigeo_to_ofiplan(row['ubigeo']),
         "fecha_nacimiento": fecha_nacimiento,
         "sexo":  'M' if row['sexo'].lower() == 'masculino' else 'F',
@@ -524,38 +630,38 @@ def formatear_json(row):
         "tipo_zona": cod_tipo_zona,  # Código OFIPLAN
         "pais": "155",  # Código OFIPLAN (PERU)
         "nacionalidad": "155",  # Código OFIPLAN (PERUANO)
+        "regimen_pensionario": regimen_pensionario,
         "cod_pensionario": REGIMEN_PENSIONARIO.get(regimen_pensionario, ""),
-        # DATOS PARA MODULO MAESTRO EMPRESA
+        # # # DATOS PARA MODULO MAESTRO EMPRESA
         "departamento_desc": departamento,
         "departamento": DEPARTAMENTOS.get(departamento, ""),
-        "sede": SEDES.get(departamento, ""), # Dirección de la sede
-        "puesto": puesto, #'almacenero', # SE enviara la descripción
-        "grupo_ocupacional": cod_grupo, # Poner Código
+        "sede": SEDES.get(departamento, ""),  # Dirección de la sede
+        "puesto": puesto,  # 'almacenero', # SE enviara la descripción
+        "grupo_ocupacional": cod_grupo,  # Poner Código
         "banco_trabajador": "CRE" if departamento in ["MAYORISTA CARAZ", "MARKET CARAZ"] else "CON",
-        "nro_cuenta_cts": row.get("cci_cts", "0000000000000"), # Campo en la Fase 4 RRHH
-        "turno": "002" if "MARKET" in departamento or "MAYOR" in departamento or "CENTER" in departamento else "001" , # 002: MARKETS Y MAY
-        "jefe": get_jefe_inmediato(departamento), # DNI
+        # Campo en la Fase 4 RRHH
+        "nro_cuenta_cts": row.get("cci_cts", "0000000000000"),
+        "turno": "002" if "MARKET" in departamento or "MAYOR" in departamento or "CENTER" in departamento else "001",  # 002: MARKETS Y MAY
+        "jefe": get_jefe_inmediato(departamento),  # DNI
     }
 
 
 def get_trabajadores_no_existen():
     df_ofiplan = get_trabajadores_ofiplan()
     df_rrhh = get_trabajadores_rrhh()
-    # Convertir las columnas de identificación a listas
+    # # Convertir las columnas de identificación a listas
     trabajadores_ofiplan = df_ofiplan['CO_TRAB'].tolist()
 
-    # Filtrar trabajadores que están en BD_RRHH pero no en BD_OFIPLAN
-    df_trabajadores_no_existen = df_rrhh[~df_rrhh['dni'].isin(
-        trabajadores_ofiplan)]
+    # # Filtrar trabajadores que están en BD_RRHH pero no en BD_OFIPLAN
+    df_trabajadores_no_existen = df_rrhh[~df_rrhh['dni'].isin(trabajadores_ofiplan)]
 
-    # PARA PRUEBAS
-    # df_trabajadores_no_existen = df_rrhh
-    print("Trabajadores que no existen en BD_OFIPLAN:")
-    print(df_trabajadores_no_existen)
+    # # PARA PRUEBAS
+    # # df_trabajadores_no_existen = df_rrhh
+    # print("Trabajadores que no existen en BD_OFIPLAN:")
+    # print(df_trabajadores_no_existen)
 
-    # Aplicar la función a cada fila del DataFrame
-    json_data = [formatear_json(row)
-                 for _, row in df_trabajadores_no_existen.iterrows()]
+    # # Aplicar la función a cada fila del DataFrame
+    json_data = [formatear_json(row) for _, row in df_trabajadores_no_existen.iterrows()]
 
     # Convertir la lista de diccionarios a un JSON
     r_json = json.dumps(json_data, indent=2)
@@ -597,23 +703,24 @@ def get_trabajadores_no_existen_modulo_maestro_empresa():
         return None
 
     # Filtrar trabajadores que están en el módulo maestro personal pero no en el módulo maestro empresa
-    df_trabajadores_no_existen = df_ofiplan[~df_ofiplan['CO_TRAB'].isin(df_ofiplan_maestro_empresa['CO_TRAB'])]
+    df_trabajadores_no_existen = df_ofiplan[~df_ofiplan['CO_TRAB'].isin(
+        df_ofiplan_maestro_empresa['CO_TRAB'])]
 
     if df_trabajadores_no_existen.empty:
         print("Todos los trabajadores en el módulo maestro personal están en el módulo maestro empresa.")
         return json.dumps([])
 
     # Mostrar resultados
-    print("Trabajadores que no existen en el módulo maestro empresa:")
-    print(df_trabajadores_no_existen)
+    # print("Trabajadores que no existen en el módulo maestro empresa:")
+    # print(df_trabajadores_no_existen)
 
     dni_list = df_trabajadores_no_existen['CO_TRAB'].tolist()
-    df_rrhh = get_trabajadores_rrhh(dni_list=dni_list)
+    df_rrhh = get_trabajadores_rrhh(dni_list)
 
     print("Trabajadores formateados con BD RRHH que no existen en el módulo maestro empresa:")
     print(df_rrhh)
 
-     # Aplicar la función a cada fila del DataFrame
+    # Aplicar la función a cada fila del DataFrame
     json_data = [formatear_json(row)
                  for _, row in df_rrhh.iterrows()]
 
@@ -626,7 +733,6 @@ def get_trabajadores_no_existen_modulo_maestro_empresa():
     return r_json
 
 
-
-get_trabajadores_no_existen()
-# get_trabajadores_no_existen_modulo_maestro_empresa()
+# get_trabajadores_no_existen()
+get_trabajadores_no_existen_modulo_maestro_empresa()
 # print(get_jefe_inmediato("MARKET JR. CARAZ"))
